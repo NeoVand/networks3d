@@ -9,6 +9,26 @@ canvas {
 
 	vertical-align: top;
 }
+#tooltip {
+	border: solid 1px rgba(255, 255, 255, 0.8);
+	padding: 10px;
+	position: absolute;
+	color: white;
+	background: rgba(0, 0, 0, 0.6);
+}
+#tooltip .body {
+	font-size: 12px;
+}
+#tooltip .attribution {
+	font-size: 8px;
+	margin-top: 5px;
+}
+#tooltip .attribution:before {
+	content: "- ";
+}
+#tooltip.hidden {
+	display: none;
+}
 #stats {
 	position: absolute;
 	top: 0;

@@ -1,3 +1,37 @@
+var raycaster = new THREE.Raycaster()
+var mouse = new THREE.Vector2(-1, -1)
+var tooltipVisible = false
+var tooltip = document.getElementById("tooltip")
+var tooltipBody = tooltip.querySelector(".body")
+var tooltipAttribution = tooltip.querySelector(".attribution")
+
+document.addEventListener("mousemove", function(e) {
+	e.preventDefault()
+
+	mouse.x = (e.pageX / WIDTH) * 2 - 1
+	mouse.y = -(e.pageY / HEIGHT) * 2 + 1
+})
+
+function loadTooltipData(data) {
+	tooltipBody.innerHTML = data.body
+	tooltipAttribution.innerHTML = data.attribution
+}
+
+function moveTooltip(e) {
+	tooltip.style.top = e.pageY + 'px'
+	tooltip.style.left = e.pageX + 'px'
+}
+
+function openTooltip() {
+	tooltip.classList.remove("hidden")
+	document.addEventListener("mousemove", moveTooltip)
+}
+
+function closeTooltip() {
+	tooltip.classList.add("hidden")
+	document.removeEventListener("mousemove", moveTooltip)
+}
+
 // Neuron ----------------------------------------------------------------
 
 function Neuron( x, y, z ) {
@@ -442,6 +476,7 @@ NeuralNetwork.prototype.initNeuralNetwork = function () {
 		that.neuronShaderMaterial.fragmentShader = SHADER_CONTAINER.neuronFrag;
 
 		$.getJSON('./models/EdgeList_guns_terrorism.json', function(data) {
+			data.edges = data.edges.filter(function(d, i) { return i < 5000 })
 			that.initAxons(data);
 			that.axonShaderMaterial.vertexShader = SHADER_CONTAINER.axonVert;
 			that.axonShaderMaterial.fragmentShader = SHADER_CONTAINER.axonFrag;
@@ -1035,6 +1070,23 @@ function update() {
 
 // ----  draw loop
 function run() {
+
+	raycaster.setFromCamera(mouse, camera)
+	if(typeof neuralNet.meshComponents.children[1] !== 'undefined') {
+		var intersections = raycaster.intersectObject(neuralNet.meshComponents.children[1])
+		if(intersections.length) {
+			if(!tooltipVisible) {
+				openTooltip()
+			}
+			loadTooltipData({
+				body: Math.random(),
+				attribution: Math.random()
+			})
+		} else {
+			tooltipVisible = false
+			closeTooltip()
+		}
+	}
 
 	var gamepad;
 	if(navigator.getGamepads()[0]){
