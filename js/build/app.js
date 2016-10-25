@@ -566,7 +566,7 @@ NeuralNetwork.prototype.initNeurons = function ( info ) {
 		dcol = this["neuronColor_" + propertyIndex];
 		this.neuronAttributes.color.value[ i ] = new THREE.Color(dcol); // initial neuron color
 		this.neuronAttributes.size.value[ i ] = 100.*Math.pow(node.pagerank,0.36); // initial neuron size
-		this.neuronAttributes.affinity.value[ i ] = node[nodeColorProperty];
+		this.neuronAttributes.affinity.value[ i ] = propertyIndex;
 	}
 
 	// neuron mesh
