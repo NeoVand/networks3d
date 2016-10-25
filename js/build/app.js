@@ -42,7 +42,7 @@ function closeTooltip() {
 
 // Neuron ----------------------------------------------------------------
 
-function Neuron( x, y, z ) {
+function Neuron( x, y, z, id, username, topics ) {
 
 	this.connection = [];
 	this.receivedSignal = false;
@@ -51,6 +51,9 @@ function Neuron( x, y, z ) {
 	this.fired = false;
 	this.firedCount = 0;
 	this.prevReleaseAxon = null;
+	this.id = id;
+	this.topics = topics;
+	this.username = username;
 	THREE.Vector3.call( this, x, y, z );
 
 }
@@ -515,8 +518,7 @@ NeuralNetwork.prototype.initNeurons = function ( info ) {
 		var dcol;
 		var node = info[i];
 		var position = node.embedding_1;
-		var n = new Neuron(position[0], position[1], position[2]);
-		n.node_id = node.node_id;
+		var n = new Neuron(position[0], position[1], position[2], node.node_id, node.twitter_handle, node.topics);
 		this.components.neurons.push(n);
 		this.neuronsGeom.vertices.push(n);
 		switch(node.trump_or_hillary){
@@ -572,12 +574,12 @@ NeuralNetwork.prototype.initAxons = function (data) {
 		var target = this.edges[k][1]
 
 		if(Math.random()>0.5){
-			var n1 = this.components.neurons.find(function(d) { return d.node_id == source })
-			var n2 = this.components.neurons.find(function(d) { return d.node_id == target})
+			var n1 = this.components.neurons.find(function(d) { return d.id == source })
+			var n2 = this.components.neurons.find(function(d) { return d.id == target})
 		}
 		else{
-			var n2 = this.components.neurons.find(function(d) { return d.node_id == source })
-			var n1 = this.components.neurons.find(function(d) { return d.node_id == target})
+			var n2 = this.components.neurons.find(function(d) { return d.id == source })
+			var n1 = this.components.neurons.find(function(d) { return d.id == target})
 		}
 
 		var connectedAxon = n1.connectNeuronTo( n2 );
@@ -1067,12 +1069,13 @@ function run() {
 	if(typeof neuralNet.meshComponents.children[1] !== 'undefined') {
 		var intersections = raycaster.intersectObject(neuralNet.meshComponents.children[1])
 		if(intersections.length && !dragging) {
+			var match = neuralNet.components.neurons[intersections[0].index]
 			if(!tooltipVisible) {
 				openTooltip()
 			}
 			loadTooltipData({
-				body: Math.random(),
-				attribution: Math.random()
+				body: "topics: " + match.topics.join(", "),
+				attribution: match.username
 			})
 		} else {
 			tooltipVisible = false
