@@ -66,7 +66,11 @@ nodeColorDictionary.topics = getCombinations(nodeColorDictionary.topics.map(func
 	})
 })
 
-var nodeColorProperty = "trump_or_hillary"
+var nodeColorProperty = location.search.substring(1);
+
+if(!nodeColorProperty.length || !Object.keys(nodeColorDictionary).includes(nodeColorProperty)) {
+	nodeColorProperty = "trump_or_hillary";
+}
 
 // Neuron ----------------------------------------------------------------
 
