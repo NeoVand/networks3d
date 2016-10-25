@@ -40,6 +40,32 @@ function closeTooltip() {
 	document.removeEventListener("mousemove", moveTooltip);
 }
 
+function getCombinations(chars) {
+  var result = [];
+  var f = function(prefix, chars) {
+    for (var i = 0; i < chars.length; i++) {
+      result.push(prefix + chars[i]);
+      f(prefix + chars[i], chars.slice(i + 1));
+    }
+  }
+  f('', chars);
+  return result;
+}
+
+var nodeColorDictionary = {
+	"trump_or_hillary": [0, 1, 2, 3],
+	"topics": ["guns", "immigration", "terrorism"]
+}
+
+// generate all possible combinations of topics
+nodeColorDictionary.topics = getCombinations(nodeColorDictionary.topics.map(function(d, i) { return i }).join("")).map(function(d) {
+	return d.split("").map(function(index) {
+		return nodeColorDictionary.topics[index]
+	})
+})
+
+var nodeColorProperty = "trump_or_hillary"
+
 // Neuron ----------------------------------------------------------------
 
 function Neuron( x, y, z, id, username, topics ) {
@@ -407,6 +433,9 @@ function NeuralNetwork() {
 	this.neuronColor_1 = '#0000ff';
 	this.neuronColor_2 = '#ff00ff';
 	this.neuronColor_3 = '#ffffff';
+	this.neuronColor_4 = '#FFBC67';
+	this.neuronColor_5 = '#3ECCB0';
+	this.neuronColor_6 = '#455C7B';
 	this.neuronOpacity = 0.75;
 	this.neuronsGeom = new THREE.Geometry();
 
@@ -521,22 +550,17 @@ NeuralNetwork.prototype.initNeurons = function ( info ) {
 		var n = new Neuron(position[0], position[1], position[2], node.node_id, node.twitter_handle, node.topics);
 		this.components.neurons.push(n);
 		this.neuronsGeom.vertices.push(n);
-		switch(node.trump_or_hillary){
-			case 0:
-				dcol="#ff0000";
-				break;
-			case 1:
-				dcol="#0000ff";
-				break;
-			case 2:
-				dcol="#ff00ff";
-				break;
-			default:
-				dcol="#ffffff";
-		}
+		var propertyIndex = nodeColorDictionary[nodeColorProperty].findIndex(function(d) { 
+			if(typeof d === 'object') {
+				var intersectionLength = _.intersection(d, node[nodeColorProperty]).length
+				return intersectionLength === d.length && intersectionLength === node[nodeColorProperty].length
+			}
+			return d === node[nodeColorProperty] 
+		});
+		dcol = this["neuronColor_" + propertyIndex];
 		this.neuronAttributes.color.value[ i ] = new THREE.Color(dcol); // initial neuron color
 		this.neuronAttributes.size.value[ i ] = 100.*Math.pow(node.pagerank,0.36); // initial neuron size
-		this.neuronAttributes.affinity.value[ i ] = node.trump_or_hillary;
+		this.neuronAttributes.affinity.value[ i ] = node[nodeColorProperty];
 	}
 
 	// neuron mesh
@@ -756,19 +780,7 @@ NeuralNetwork.prototype.updateSettings = function () {
 	for ( i = 0; i < this.components.neurons.length; i++ ) {
 		var dcol;
 		var af = this.neuronAttributes.affinity.value[ i ];
-		switch(af){
-			case 0:
-				dcol=this.neuronColor_0;
-				break;
-			case 1:
-				dcol=this.neuronColor_1;
-				break;
-			case 2:
-				dcol=this.neuronColor_2;
-				break;
-			default:
-				dcol=this.neuronColor_3;
-		}
+		dcol = this["neuronColor_" + af];
 		// this.neuronAttributes.color.value[ i ] = new THREE.Color(dcol); // initial neuron color
 		this.neuronAttributes.color.value[ i ].setStyle( dcol ); // initial neuron color
 	}
@@ -1020,7 +1032,7 @@ function initGui() {
 	gui_settings.addColor( neuralNet, 'axonColor' ).name( 'Link Color' );
 	gui_settings.addColor( neuralNet, 'axonColor_0' ).name( 'Guns-Link' );
 	gui_settings.addColor( neuralNet, 'axonColor_1' ).name( 'Terrorism-Link' );
-	gui_settings.addColor( neuralNet, 'axonColor_2' ).name( 'Both-Link' );
+	gui_settings.addColor( neuralNet, 'axonColor_2' ).name( 'Immigration-Link' );
 	gui_settings.addColor( sceneSettings, 'bgColor' ).name( 'Background' );
 
 	gui_info.open();
