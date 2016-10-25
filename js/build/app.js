@@ -57,6 +57,8 @@ var nodeColorDictionary = {
 	"topics": ["guns", "immigration", "terrorism"]
 }
 
+var trumpOrHillaryDict = ['Trump', 'Hillary', 'Both', 'Neither']
+
 // generate all possible combinations of topics
 nodeColorDictionary.topics = getCombinations(nodeColorDictionary.topics.map(function(d, i) { return i }).join("")).map(function(d) {
 	return d.split("").map(function(index) {
@@ -1024,10 +1026,13 @@ function initGui() {
 	gui_settings.add( neuralNet, 'axonOpacityMultiplier', 0.0, 0.5,0.001 ).name( 'Link Opacity Mult' );
 	gui_settings.addColor( neuralNet.particlePool, 'pColor' ).name( 'Signal Color' );
 
-	gui_settings.addColor( neuralNet, 'neuronColor_0' ).name( 'Trump-Node' );
-	gui_settings.addColor( neuralNet, 'neuronColor_1' ).name( 'Clinton-Node' );
-	gui_settings.addColor( neuralNet, 'neuronColor_2' ).name( 'Both-Node' );
-	gui_settings.addColor( neuralNet, 'neuronColor_3' ).name( 'None-Node' );
+	nodeColorDictionary[nodeColorProperty].forEach(function(val, i) {
+		var label = val;
+		if(nodeColorProperty === 'trump_or_hillary') {
+			label = trumpOrHillaryDict[val];
+		}
+		gui_settings.addColor(neuralNet, 'neuronColor_' + i).name(label);
+	})
 
 	gui_settings.addColor( neuralNet, 'axonColor' ).name( 'Link Color' );
 	gui_settings.addColor( neuralNet, 'axonColor_0' ).name( 'Guns-Link' );
