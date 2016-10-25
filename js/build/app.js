@@ -1,35 +1,43 @@
-var raycaster = new THREE.Raycaster()
-var mouse = new THREE.Vector2(-1, -1)
-var tooltipVisible = false
-var tooltip = document.getElementById("tooltip")
-var tooltipBody = tooltip.querySelector(".body")
-var tooltipAttribution = tooltip.querySelector(".attribution")
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2(-1, -1);
+var tooltipVisible = false, dragging = false;
+var tooltip = document.getElementById("tooltip");
+var tooltipBody = tooltip.querySelector(".body");
+var tooltipAttribution = tooltip.querySelector(".attribution");
+
+document.addEventListener("mousedown", function() {
+	dragging = true;
+})
+
+document.addEventListener("mouseup", function() {
+	dragging = false;
+})
 
 document.addEventListener("mousemove", function(e) {
-	e.preventDefault()
+	e.preventDefault();
 
-	mouse.x = (e.pageX / WIDTH) * 2 - 1
-	mouse.y = -(e.pageY / HEIGHT) * 2 + 1
+	mouse.x = (e.pageX / WIDTH) * 2 - 1;
+	mouse.y = -(e.pageY / HEIGHT) * 2 + 1;
 })
 
 function loadTooltipData(data) {
-	tooltipBody.innerHTML = data.body
-	tooltipAttribution.innerHTML = data.attribution
+	tooltipBody.innerHTML = data.body;
+	tooltipAttribution.innerHTML = data.attribution;
 }
 
 function moveTooltip(e) {
-	tooltip.style.top = e.pageY + 'px'
-	tooltip.style.left = e.pageX + 'px'
+	tooltip.style.top = e.pageY + 'px';
+	tooltip.style.left = e.pageX + 'px';
 }
 
 function openTooltip() {
-	tooltip.classList.remove("hidden")
-	document.addEventListener("mousemove", moveTooltip)
+	tooltip.classList.remove("hidden");
+	document.addEventListener("mousemove", moveTooltip);
 }
 
 function closeTooltip() {
-	tooltip.classList.add("hidden")
-	document.removeEventListener("mousemove", moveTooltip)
+	tooltip.classList.add("hidden");
+	document.removeEventListener("mousemove", moveTooltip);
 }
 
 // Neuron ----------------------------------------------------------------
@@ -1058,7 +1066,7 @@ function run() {
 	raycaster.setFromCamera(mouse, camera)
 	if(typeof neuralNet.meshComponents.children[1] !== 'undefined') {
 		var intersections = raycaster.intersectObject(neuralNet.meshComponents.children[1])
-		if(intersections.length) {
+		if(intersections.length && !dragging) {
 			if(!tooltipVisible) {
 				openTooltip()
 			}
