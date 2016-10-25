@@ -10,6 +10,7 @@ canvas {
 	vertical-align: top;
 }
 #tooltip {
+	pointer-events: none;
 	border: solid 1px rgba(255, 255, 255, 0.8);
 	padding: 10px;
 	position: absolute;
