@@ -867,17 +867,6 @@ shaderLoader.loadMultiple( SHADER_CONTAINER, {
 } );
 
 
-
-var OBJ_MODELS = {};
-var OBJloader = new THREE.OBJLoader( loadingManager );
-// OBJloader.load( 'models/brain_vertex_low.obj', function ( model ) {
-OBJloader.load( 'models/mdsObjGT.obj', function ( model ) {
-
-	OBJ_MODELS.brain = model.children[ 0 ];
-
-} );
-
-
 var TEXTURES = {};
 var textureLoader = new THREE.TextureLoader( loadingManager );
 textureLoader.load( 'sprites/electric.png', function ( tex ) {
