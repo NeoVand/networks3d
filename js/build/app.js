@@ -476,9 +476,6 @@ NeuralNetwork.prototype.initNeuralNetwork = function () {
 		that.neuronShaderMaterial.fragmentShader = SHADER_CONTAINER.neuronFrag;
 
 		$.getJSON('./models/EdgeList_guns_terrorism.json', function(data) {
-			data = data.filter(function(d) {
-				return d[0] < that.components.neurons.length && d[1] < that.components.neurons.length
-			})
 			that.initAxons(data);
 			that.axonShaderMaterial.vertexShader = SHADER_CONTAINER.axonVert;
 			that.axonShaderMaterial.fragmentShader = SHADER_CONTAINER.axonFrag;
@@ -504,13 +501,14 @@ NeuralNetwork.prototype.initNeurons = function ( info ) {
 	// }
 
 	// set neuron attributes value
-	for ( i = 0; i < info.length - 1; i++ ) {
+	for ( i = 0; i < info.length; i++ ) {
 		// this.neuronAttributes.color.value[ i ] = new THREE.Color( '#ffffff' ); // initial neuron color
 		// this.neuronAttributes.size.value[ i ] = THREE.Math.randFloat( 0.75, 3.0 ); // initial neuron size
 		var dcol;
 		var node = info[i];
 		var position = node.embedding_1;
 		var n = new Neuron(position[0], position[1], position[2]);
+		n.node_id = node.node_id;
 		this.components.neurons.push(n);
 		this.neuronsGeom.vertices.push(n);
 		switch(node.trump_or_hillary){
@@ -566,12 +564,12 @@ NeuralNetwork.prototype.initAxons = function (data) {
 		var target = this.edges[k][1]
 
 		if(Math.random()>0.5){
-			var n1 = this.components.neurons[ source ];
-			var n2 = this.components.neurons[ target ];
+			var n1 = this.components.neurons.find(function(d) { return d.node_id == source })
+			var n2 = this.components.neurons.find(function(d) { return d.node_id == target})
 		}
 		else{
-			var n2 = this.components.neurons[ source ];
-			var n1 = this.components.neurons[ target ];
+			var n2 = this.components.neurons.find(function(d) { return d.node_id == source })
+			var n1 = this.components.neurons.find(function(d) { return d.node_id == target})
 		}
 
 		var connectedAxon = n1.connectNeuronTo( n2 );
