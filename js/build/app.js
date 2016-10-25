@@ -469,14 +469,16 @@ function NeuralNetwork() {
 NeuralNetwork.prototype.initNeuralNetwork = function () {
 	var that = this;
 	$.getJSON('./models/nodeInfo.json', function(data) {
-		var nodeInfo = _.values(data);
-		that.initNeurons( OBJ_MODELS.brain.geometry.vertices, nodeInfo );
+		var nodeInfo = data;
+		that.initNeurons( nodeInfo );
 
 		that.neuronShaderMaterial.vertexShader = SHADER_CONTAINER.neuronVert;
 		that.neuronShaderMaterial.fragmentShader = SHADER_CONTAINER.neuronFrag;
 
 		$.getJSON('./models/EdgeList_guns_terrorism.json', function(data) {
-			data.edges = data.edges.filter(function(d, i) { return i < 5000 })
+			data = data.filter(function(d) {
+				return d[0] < that.components.neurons.length && d[1] < that.components.neurons.length
+			})
 			that.initAxons(data);
 			that.axonShaderMaterial.vertexShader = SHADER_CONTAINER.axonVert;
 			that.axonShaderMaterial.fragmentShader = SHADER_CONTAINER.axonFrag;
@@ -490,23 +492,28 @@ NeuralNetwork.prototype.initNeuralNetwork = function () {
 
 };
 
-NeuralNetwork.prototype.initNeurons = function ( inputVertices, info ) {
+NeuralNetwork.prototype.initNeurons = function ( info ) {
 
 	var i;
-	for ( i = 0; i < inputVertices.length; i += this.settings.verticesSkipStep ) {
-		var pos = inputVertices[ i ];
-		var n = new Neuron( pos.x, pos.y, pos.z );
-		this.components.neurons.push( n );
-		this.neuronsGeom.vertices.push( n );
-		// dont set neuron's property here because its skip vertices
-	}
+	// for ( i = 0; i < inputVertices.length; i += this.settings.verticesSkipStep ) {
+	// 	var pos = inputVertices[ i ];
+	// 	var n = new Neuron( pos.x, pos.y, pos.z );
+	// 	this.components.neurons.push( n );
+	// 	this.neuronsGeom.vertices.push( n );
+	// 	// dont set neuron's property here because its skip vertices
+	// }
 
 	// set neuron attributes value
-	for ( i = 0; i < this.components.neurons.length; i++ ) {
+	for ( i = 0; i < info.length - 1; i++ ) {
 		// this.neuronAttributes.color.value[ i ] = new THREE.Color( '#ffffff' ); // initial neuron color
 		// this.neuronAttributes.size.value[ i ] = THREE.Math.randFloat( 0.75, 3.0 ); // initial neuron size
 		var dcol;
-		switch(info[i].affinity){
+		var node = info[i];
+		var position = node.embedding_1;
+		var n = new Neuron(position[0], position[1], position[2]);
+		this.components.neurons.push(n);
+		this.neuronsGeom.vertices.push(n);
+		switch(node.trump_or_hillary){
 			case 0:
 				dcol="#ff0000";
 				break;
@@ -520,10 +527,9 @@ NeuralNetwork.prototype.initNeurons = function ( inputVertices, info ) {
 				dcol="#ffffff";
 		}
 		this.neuronAttributes.color.value[ i ] = new THREE.Color(dcol); // initial neuron color
-		this.neuronAttributes.size.value[ i ] = 100.*Math.pow(info[i].pagerank,0.36); // initial neuron size
-		this.neuronAttributes.affinity.value[ i ] = info[i].affinity;
+		this.neuronAttributes.size.value[ i ] = 100.*Math.pow(node.pagerank,0.36); // initial neuron size
+		this.neuronAttributes.affinity.value[ i ] = node.trump_or_hillary;
 	}
-
 
 	// neuron mesh
 	this.neuronParticles = new THREE.PointCloud( this.neuronsGeom, this.neuronShaderMaterial );
@@ -543,47 +549,38 @@ NeuralNetwork.prototype.initAxons = function (data) {
 	// 		var connectedAxon = n1.connectNeuronTo( n2 );
 	// 		that.constructAxonArrayBuffer( connectedAxon );}
 	// });
-	this.edges = (data["edges"]).filter(function(){return Math.random()>0.2});
+	this.edges = data;
 	for ( var k = 0; k < this.edges.length; k++ ) {
 		var dcol;
 		switch(this.edges[k][2]){
-			case "0":
+			case "guns":
 				dcol="#ffff00";
 				break;
-			case "1":
+			case "terrorism":
 				dcol="#00ff00";
 				break;
 			default:
 				dcol="#ffffff";
 		}
+		var source = this.edges[k][0]
+		var target = this.edges[k][1]
+
 		if(Math.random()>0.5){
-			var n1 = this.components.neurons[ this.edges[k][0] ];
-			var n2 = this.components.neurons[ this.edges[k][1] ];
+			var n1 = this.components.neurons[ source ];
+			var n2 = this.components.neurons[ target ];
 		}
 		else{
-			var n2 = this.components.neurons[ this.edges[k][0] ];
-			var n1 = this.components.neurons[ this.edges[k][1] ];
+			var n2 = this.components.neurons[ source ];
+			var n1 = this.components.neurons[ target ];
 		}
 
 		var connectedAxon = n1.connectNeuronTo( n2 );
 		connectedAxon.taint = new THREE.Color(dcol);
 		connectedAxon.topic= 1.0*this.edges[k][2];
-		this.constructAxonArrayBuffer( connectedAxon );}
+		this.constructAxonArrayBuffer( connectedAxon );
+	}
 
 	var allNeuronsLength = this.components.neurons.length;
-	// for ( var j = 0; j < allNeuronsLength; j++ ) {
-	// 	var n1 = this.components.neurons[ j ];
-	// 	for ( var k = j + 1; k < allNeuronsLength; k++ ) {
-	// 		var n2 = this.components.neurons[ k ];
-	// 		// connect neuron if distance is within threshold and limit maximum connection per neuron
-	// 		if ( n1 !== n2 && n1.distanceTo( n2 ) < this.settings.maxAxonDist &&
-	// 			n1.connection.length < this.settings.maxConnectionsPerNeuron &&
-	// 			n2.connection.length < this.settings.maxConnectionsPerNeuron ) {
-	// 			var connectedAxon = n1.connectNeuronTo( n2 );
-	// 			this.constructAxonArrayBuffer( connectedAxon );
-	// 		}
-	// 	}
-	// }
 
 	// enable WebGL 32 bit index buffer or get an error
 	if ( !renderer.getContext().getExtension( "OES_element_index_uint" ) ) {
